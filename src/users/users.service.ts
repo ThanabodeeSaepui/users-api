@@ -1,6 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpExceptionOptions,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InsertResult, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 
@@ -12,12 +17,25 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    // TODO need fix duplicate email err
-    return await this.usersRepository.save(createUserDto);
-  }
+    let status = {
+      success: true,
+      message: 'user registered',
+    };
 
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+    try {
+      await this.usersRepository.insert(createUserDto);
+    } catch (err) {
+      let errMessage =
+        err.driverError.code === 'ER_DUP_ENTRY'
+          ? 'Email already in used'
+          : 'Error';
+      status = {
+        success: false,
+        message: errMessage,
+      };
+    }
+
+    return status;
   }
 
   findOne(email: string): Promise<User> {
