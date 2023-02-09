@@ -1,33 +1,26 @@
 import { Injectable } from '@nestjs/common';
-
-export type User = {
-  id: number;
-  fname: string;
-  lname: string;
-  email: string;
-  password: string;
-};
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  private readonly users: User[] = [
-    {
-      id: 1,
-      fname: 'Safe',
-      lname: 'Saepui',
-      email: 'safe.saepui@gmail.com',
-      password: '1234',
-    },
-    {
-      id: 2,
-      fname: 'John',
-      lname: 'jack',
-      email: 'john.jack@gmail.com',
-      password: '9876',
-    },
-  ];
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+  ) {}
 
-  async fineOne(email: string): Promise<User | undefined> {
-    return this.users.find((user) => user.email === email);
+  async create(createUserDto: CreateUserDto) {
+    // TODO need fix duplicate email err
+    return await this.usersRepository.save(createUserDto);
+  }
+
+  findAll(): Promise<User[]> {
+    return this.usersRepository.find();
+  }
+
+  findOne(email: string): Promise<User> {
+    return this.usersRepository.findOneBy({ email });
   }
 }
