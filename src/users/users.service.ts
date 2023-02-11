@@ -19,7 +19,7 @@ export class UsersService {
       message: 'user registered',
     };
 
-    let newUser: CreateUserDto = createUserDto;
+    const newUser: CreateUserDto = createUserDto;
     // Hash Password
     hash(createUserDto.password, this.saltRounds, (err, hash) => {
       if (err) {

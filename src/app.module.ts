@@ -1,14 +1,13 @@
-import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common/decorators/modules';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { DataSource } from 'typeorm';
 import { User } from './users/entities/user.entity';
-
-require('dotenv').config();
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 @Module({
   imports: [
     UsersModule,
