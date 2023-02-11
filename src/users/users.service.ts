@@ -1,13 +1,10 @@
-import {
-  ConflictException,
-  HttpExceptionOptions,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InsertResult, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { RegistrationStatus } from './interfaces/regisration-status.interface';
+import { hash } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -15,25 +12,37 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
-
-  async create(createUserDto: CreateUserDto) {
-    let status = {
+  saltRounds: number = 10;
+  async create(createUserDto: CreateUserDto): Promise<RegistrationStatus> {
+    let status: RegistrationStatus = {
       success: true,
       message: 'user registered',
     };
 
-    try {
-      await this.usersRepository.insert(createUserDto);
-    } catch (err) {
-      let errMessage =
-        err.driverError.code === 'ER_DUP_ENTRY'
-          ? 'Email already in used'
-          : 'Error';
-      status = {
-        success: false,
-        message: errMessage,
-      };
-    }
+    let newUser: CreateUserDto = createUserDto;
+    // Hash Password
+    hash(createUserDto.password, this.saltRounds, (err, hash) => {
+      if (err) {
+        return (status = {
+          success: false,
+          message: err.message,
+        });
+      }
+      newUser.password = hash;
+
+      try {
+        this.usersRepository.insert(newUser); // INSERT to database
+      } catch (err) {
+        let errMessage =
+          err.driverError.code === 'ER_DUP_ENTRY'
+            ? 'Email already in used'
+            : 'Error';
+        return (status = {
+          success: false,
+          message: errMessage,
+        });
+      }
+    });
 
     return status;
   }
