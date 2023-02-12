@@ -1,4 +1,4 @@
-import { ExtractJwt, Strategy } from 'passport-jwt/index';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common/decorators/core';
 import { jwtConstants } from '../constants';
